@@ -1,56 +1,57 @@
 import streamlit as st
-from openai import OpenAI
+from openai_helpers import initialize_client, get_embedding, summarize_feedbacks
+from pinecone_helpers import init_pinecone, query_pinecone
+from dotenv import load_dotenv
 
-# Show title and description.
-st.title("💬 Chatbot")
+# Load environment variables from .env file
+load_dotenv()
+
+# Show title and description
+st.title("🔍 Löydä sinua kiinnostavat asiakaspalautteet nopeasti!💬")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
+    "Tervetuloa asiakaspalautteiden hakuun! Tämä työkalu auttaa sinua löytämään juuri ne palautteet, joista olet kiinnostunut. "
+    "💡 Käytä hakukenttää kirjoittaaksesi kysymyksesi ja etsi asiakaspalautteita helposti. "
+    "🔑 Aloita syöttämällä OpenAI API-avain."
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
+# Input for OpenAI API key
+openai_api_key = st.text_input("Syötä OpenAI API-avain:", type="password")
+
+# Check if the user has entered a valid API key
+if openai_api_key:
+    # Initialize Pinecone and OpenAI
+    index = init_pinecone()
+    client = initialize_client(openai_api_key)
+
+    # Streamlit app layout
+    st.subheader("Asiakaspalautteiden haku")
+
+    # Input box for user query
+    user_query = st.text_input("Kirjoita kysymyksesi asiakaspalautteesta:")
+
+    # Select mode (Feedback Only or Summarize)
+    mode = st.selectbox("Toiminto:", ("Etsi palautteita", "Hae tiivistelmä tietyistä palautteista"))
+
+    # Button to trigger search
+    if st.button("Hae palautteita"):
+        # Check if the query is not empty and has a minimum character length (e.g., 10 characters)
+        if len(user_query.strip()) < 10:
+            st.write("Kysymyksen on oltava vähintään 10 merkkiä pitkä. Tarkista kysymyksesi.")
+        else:
+            # Generate embedding using OpenAI
+            st.write("Tutkitaan palautteita...")
+            embedding = get_embedding(user_query, client)
+
+            # Display results or summarize feedbacks
+            if mode == "Etsi palautteita":
+                st.write("Haetaan halutut asiakaspalautteet...")
+                results = query_pinecone(index, embedding)
+                for result in results:
+                    st.write(f"{result['metadata']['review_text']}")
+            else:
+                st.write("Luodaan tiivistelmää...")
+                results = query_pinecone(index, embedding, top_k=20)
+                summarized_feedback = summarize_feedbacks(user_query, [review['metadata']['review_text'] for review in results], client)
+                st.write(summarized_feedback.content)
 else:
-
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
-
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
-
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    st.write("Anna OpenAI API-avain aloittaaksesi.")
