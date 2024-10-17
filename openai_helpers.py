@@ -13,10 +13,10 @@ def get_embedding(text, client, model="text-embedding-3-small"):
    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
 def summarize_feedbacks(user_query, feedbacks, client):
-    """Summarizes a list of feedbacks using GPT-4."""
+    """Summarizes a list of feedbacks using GPT-4o-mini."""
     feedback_text = "\n".join(feedbacks)
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
