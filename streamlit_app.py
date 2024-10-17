@@ -1,10 +1,6 @@
 import streamlit as st
 from openai_helpers import initialize_client, get_embedding, summarize_feedbacks
 from pinecone_helpers import init_pinecone, query_pinecone
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Show title and description
 st.title("🔍 Löydä sinua kiinnostavat asiakaspalautteet nopeasti!💬")

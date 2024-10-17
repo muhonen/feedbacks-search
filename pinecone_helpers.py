@@ -1,10 +1,10 @@
 from pinecone import Pinecone
-import os
+import streamlit as st
 
 def init_pinecone():
     """Initializes the Pinecone client and connects to the index."""
     # Initialize Pinecone client with the correct region
-    pinecone = Pinecone(api_key=os.getenv("PINECONE_API_KEY"), environment="us-west1-gcp")
+    pinecone = Pinecone(api_key=st.secrets["PINECONE_API_KEY"], environment="us-west1-gcp")
     
     # Connect to the Pinecone index
     index_name = "feedbacks-index"
