@@ -1,18 +1,14 @@
 from pinecone import Pinecone
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
 from openai_helpers import initialize_client
 import pandas as pd
 from tqdm.auto import tqdm
 from openai_helpers import get_embedding
-
-# Load environment variables from .env file
-load_dotenv()
+import streamlit as st
 
 # Get API keys
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
 # Initialize pinecone and OpenAI
 pc = Pinecone(api_key=PINECONE_API_KEY)

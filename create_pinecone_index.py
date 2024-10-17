@@ -1,12 +1,9 @@
 from pinecone import Pinecone, ServerlessSpec
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+import streamlit as st
 
 # Get Pinecone API key
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
