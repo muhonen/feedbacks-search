@@ -11,6 +11,23 @@ def get_embedding(text, client, model="text-embedding-3-small"):
    text = text.replace("\n", " ")
    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
+def expand_query(user_query, client):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Olet avulias assistentti, joka laajentaa käyttäjän kyselyä."},
+            {"role": "user", "content": f"""
+             Laajenna tätä kyselyä: 
+             #### '{user_query}' #### 
+              siihen liittyvillä sanoilla ja termeillä, jotta palautteiden haku toimii paremmin.
+             """
+             }
+        ]
+    )
+    expanded_query = response.choices[0].message.content
+    return expanded_query
+
+
 def summarize_feedbacks(user_query, feedbacks, client):
     """Summarizes a list of feedbacks using GPT-4o-mini."""
     feedback_text = "\n".join(feedbacks)

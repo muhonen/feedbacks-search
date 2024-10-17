@@ -1,5 +1,5 @@
 import streamlit as st
-from openai_helpers import initialize_client, get_embedding, summarize_feedbacks
+from openai_helpers import initialize_client, get_embedding, summarize_feedbacks, expand_query
 from pinecone_helpers import init_pinecone, query_pinecone
 import pandas as pd
 
@@ -43,7 +43,7 @@ if openai_api_key:
 
     # Input box for user query
     user_query = st.text_input("Kirjoita kysymyksesi asiakaspalautteista:")
-
+    
     # Select mode (Feedback Only or Summarize)
     mode = st.selectbox("Toiminto:", ("Etsi palautteita", "Hae tiivistelmä tietyistä palautteista"))
 
@@ -60,6 +60,10 @@ if openai_api_key:
 
             # Show loading spinner
             with st.spinner("Tutkitaan palautteita..."):
+                
+                # Expand user query for hopefully better results
+                user_query = expand_query(user_query, client)
+
                 # Generate embedding using OpenAI
                 embedding = get_embedding(user_query, client)
 
