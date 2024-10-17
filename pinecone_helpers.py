@@ -1,5 +1,22 @@
-from pinecone import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 import streamlit as st
+
+def create_pinecone_index(index_name="feedbacks_index"):
+    """Creates pinecone index to store the embeddings"""
+    # Get Pinecone API key
+    PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
+
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+
+    pc.create_index(
+        name=index_name,
+        dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud="aws",
+            region="us-east-1"
+        )
+    )
 
 def init_pinecone():
     """Initializes the Pinecone client and connects to the index."""
