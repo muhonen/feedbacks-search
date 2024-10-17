@@ -14,12 +14,16 @@ def get_embedding(text, client, model="text-embedding-3-small"):
 def expand_query(user_query, client):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
+        temperature=0,
         messages=[
-            {"role": "system", "content": "Olet avulias assistentti, joka laajentaa käyttäjän kyselyä."},
+            {"role": "system", "content": """
+             Olet avulias assistentti, joka laajentaa käyttäjän kyselyä siihen liittyvillä sanoilla ja termeillä, 
+             jotta palautteiden haku toimii paremmin. Palautteet ovat vakuutusyhtiön palautteita. 
+             Keskity laajentamaan hakua siltä osin mitä käyttäjä spesifisesti hakee, 
+             älä lisää yleisiä termejä."""},
             {"role": "user", "content": f"""
              Laajenna tätä kyselyä: 
              #### '{user_query}' #### 
-              siihen liittyvillä sanoilla ja termeillä, jotta palautteiden haku toimii paremmin.
              """
              }
         ]
@@ -33,6 +37,7 @@ def summarize_feedbacks(user_query, feedbacks, client):
     feedback_text = "\n".join(feedbacks)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
+        temperature=0,
         messages=[
             {
                 "role": "system",
